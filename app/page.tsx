@@ -193,24 +193,72 @@ function MixingTube({ pigmentDrops }: { pigmentDrops: Pigment[] }) {
 function CameraPanel({ activeColor }: { activeColor: string | null }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [streaming, setStreaming] = useState(false);
-  const [permState, setPermState] = useState("idle"); // idle | denied | blocked
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [permState, setPermState] = useState("idle"); // idle | denied | error
 
   const startCamera = useCallback(async () => {
-    // Detect iframe restriction first
-    const inIframe = window.self !== window.top;
-    if (inIframe) { setPermState("blocked"); return; }
+    setErrorMsg(null);
+    setPermState("idle");
+    
+    // 1. Check for Secure Context
+    if (typeof window !== "undefined" && !window.isSecureContext && window.location.hostname !== "localhost") {
+      setPermState("error");
+      setErrorMsg("Camera requires HTTPS (Secure Connection). Your current connection is not secure.");
+      return;
+    }
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setPermState("error");
+      setErrorMsg("Camera API not supported in this browser version.");
+      return;
+    }
+
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user", width: 640, height: 480 },
-      });
+      // Try with preferred constraints first
+      const constraints = {
+        video: { 
+          facingMode: "user",
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      };
+      
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (innerErr) {
+        console.warn("Preferred constraints failed, falling back to basic video.", innerErr);
+        // Fallback to the most basic video constraint
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      }
+      
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
-        setStreaming(true);
-        setPermState("idle");
+        
+        // Edge/Chrome sometimes needs a moment to initialize the stream
+        videoRef.current.onloadedmetadata = async () => {
+          try {
+            await videoRef.current?.play();
+            setStreaming(true);
+            setPermState("idle");
+          } catch (playErr) {
+            console.error("Autoplay failed:", playErr);
+            setErrorMsg("Click the button to start the video feed.");
+          }
+        };
       }
-    } catch {
-      setPermState("denied");
+    } catch (err: any) {
+      console.error("Camera access error:", err);
+      if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+        setPermState("denied");
+        setErrorMsg("Camera blocked. Please click the 'lock' icon in your browser address bar and allow camera access.");
+      } else if (err.name === "NotReadableError" || err.name === "TrackStartError") {
+        setPermState("error");
+        setErrorMsg("Camera is already in use by another application (like Zoom or Teams).");
+      } else {
+        setPermState("error");
+        setErrorMsg(err.message || "Could not start camera.");
+      }
     }
   }, []);
 
@@ -223,68 +271,12 @@ function CameraPanel({ activeColor }: { activeColor: string | null }) {
   }, []);
 
   useEffect(() => {
-    // Auto-detect iframe on mount
-    if (window.self !== window.top) setPermState("blocked");
+    // Try to auto-start, but browsers often require user interaction first
+    startCamera();
     return () => stopCamera();
-  }, [stopCamera]);
+  }, [startCamera, stopCamera]);
 
-  const buildStudioHTML = (color:string) => `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>LipLab Studio</title>
-<style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{background:#0c0a0f;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;color:#fff}
-  h1{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:#94a3b8;margin-bottom:20px}
-  .stage{position:relative;width:min(100vw,540px);aspect-ratio:4/3;border-radius:20px;overflow:hidden;background:#111;border:1px solid #1e293b}
-  video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
-  svg.lip{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:60%;mix-blend-mode:multiply;opacity:.85;transition:opacity .5s}
-  .controls{margin-top:16px;display:flex;gap:10px}
-  button{padding:10px 20px;border-radius:999px;border:1px solid #334155;background:#1e293b;color:#94a3b8;font-size:12px;cursor:pointer;transition:all .2s}
-  button:hover{background:#334155;color:#e2e8f0}
-  .badge{padding:6px 14px;border-radius:999px;background:${color || '#E8637A'}22;border:1px solid ${color || '#E8637A'}44;color:${color || '#E8637A'};font-size:11px;display:flex;align-items:center;gap:6px}
-  .dot{width:8px;height:8px;border-radius:50%;background:${color || '#E8637A'}}
-  #status{font-size:11px;color:#64748b;margin-top:10px}
-</style>
-</head>
-<body>
-<h1>⬡ LipLab Pro Studio</h1>
-<div class="stage" id="stage">
-  <video id="v" autoplay playsinline muted></video>
-  <svg class="lip" id="lip" viewBox="0 0 220 90" xmlns="http://www.w3.org/2000/svg">
-    <path d="M10 50 C10 50, 40 18, 70 30 C85 36, 95 22, 110 22 C125 22, 135 36, 150 30 C180 18, 210 50, 210 50 C210 50, 185 40, 155 42 C140 43, 128 52, 110 52 C92 52, 80 43, 65 42 C35 40, 10 50, 10 50 Z" fill="${color || '#E8637A'}"/>
-    <path d="M10 50 C35 40, 65 42, 80 43 C92 44, 100 60, 110 62 C120 60, 128 44, 140 43 C155 42, 185 40, 210 50 C200 75, 170 82, 140 80 C125 79, 118 74, 110 74 C102 74, 95 79, 80 80 C50 82, 20 75, 10 50 Z" fill="${color || '#E8637A'}"/>
-  </svg>
-</div>
-<div class="controls">
-  <button onclick="toggleCam()">Toggle Camera</button>
-  <div class="badge"><div class="dot"></div>Active Color</div>
-</div>
-<p id="status">Click "Allow" when your browser asks for camera access.</p>
-<script>
-let stream=null,on=false;
-async function toggleCam(){
-  if(on){stream&&stream.getTracks().forEach(t=>t.stop());document.getElementById('v').srcObject=null;on=false;document.getElementById('status')='Camera off';return}
-  try{
-    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}});
-    document.getElementById('v').srcObject=stream;on=true;
-    document.getElementById('status').textContent='Camera active — lip overlay applied';
-  }catch(e){document.getElementById('status').textContent='Permission denied. Please allow camera in your browser settings.'}
-}
-toggleCam();
-</script>
-</body>
-</html>`;
-
-  const openInNewTab = () => {
-  const html = buildStudioHTML(activeColor || "#E8637A");
-    const blob = new Blob([html], { type: "text/html" });
-    window.open(URL.createObjectURL(blob), "_blank");
-  };
-
-  const isBlocked = permState === "blocked" || permState === "denied";
+  const isFailed = permState === "denied" || permState === "error";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -297,7 +289,7 @@ toggleCam();
           borderRadius: 20,
           overflow: "hidden",
           background: streaming ? "#000" : "#f1f5f9",
-          border: isBlocked ? "1.5px dashed #fca5a5" : "1.5px solid #e2e8f0",
+          border: isFailed ? "1.5px dashed #fca5a5" : "1.5px solid #e2e8f0",
           boxShadow: "0 4px 24px rgba(0,0,0,0.07)",
           transition: "border-color 0.3s ease",
         }}
@@ -317,7 +309,7 @@ toggleCam();
         {/* Lip overlay on live feed */}
         {streaming && <LipMask color={activeColor} />}
 
-        {/* Idle / blocked state */}
+        {/* Idle / Error state */}
         {!streaming && (
           <div
             style={{
@@ -328,7 +320,7 @@ toggleCam();
             }}
           >
             {/* Color preview pill */}
-            {activeColor && (
+            {activeColor && !isFailed && (
               <div
                 style={{
                   width: 110, height: 44, borderRadius: 999,
@@ -340,29 +332,27 @@ toggleCam();
               />
             )}
 
-            {isBlocked ? (
-              <>
-                <div
-                  style={{
-                    background: "#fef2f2", border: "1px solid #fecaca",
-                    borderRadius: 12, padding: "10px 14px",
-                    display: "flex", alignItems: "flex-start", gap: 8, maxWidth: 260,
-                  }}
-                >
-                  <span style={{ fontSize: 16 }}>🔒</span>
-                  <div>
-                    <p style={{ fontSize: 11, fontWeight: 600, color: "#dc2626", marginBottom: 2 }}>
-                      Camera blocked in preview
-                    </p>
-                    <p style={{ fontSize: 10, color: "#ef4444", lineHeight: 1.5 }}>
-                      Embedded previews can't access your camera. Launch the full studio in a new tab to use the live AR try-on.
-                    </p>
-                  </div>
+            {isFailed ? (
+              <div
+                style={{
+                  background: "#fef2f2", border: "1px solid #fecaca",
+                  borderRadius: 12, padding: "10px 14px",
+                  display: "flex", alignItems: "flex-start", gap: 8, maxWidth: 260,
+                }}
+              >
+                <span style={{ fontSize: 16 }}>⚠️</span>
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: "#dc2626", marginBottom: 2 }}>
+                    Camera Issue
+                  </p>
+                  <p style={{ fontSize: 10, color: "#ef4444", lineHeight: 1.5 }}>
+                    {errorMsg}
+                  </p>
                 </div>
-              </>
+              </div>
             ) : (
               <p style={{ fontSize: 11, color: "#94a3b8", textAlign: "center" }}>
-                {activeColor ? "Select a color above, then launch the studio" : "Pick a shade to preview"}
+                {activeColor ? "Initializing live try-on..." : "Pick a shade to begin preview"}
               </p>
             )}
           </div>
@@ -386,37 +376,37 @@ toggleCam();
         )}
       </div>
 
-      {/* Launch Studio CTA — prominent */}
-      <button
-        onClick={openInNewTab}
-        style={{
-          width: "100%",
-          padding: "13px 16px",
-          borderRadius: 14,
-          background: activeColor || "#E03050",
-          border: "none",
-          color: "#fff",
-          fontSize: 13,
-          fontWeight: 600,
-          fontFamily: "'DM Sans', sans-serif",
-          letterSpacing: "0.03em",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 8,
-          boxShadow: `0 4px 20px ${activeColor || "#E03050"}55`,
-          transition: "all 0.3s ease",
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.opacity = "0.9"}
-        onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
-      >
-        <ExternalLink size={15} />
-        Launch Full Studio — Live Camera Try-On
-      </button>
+      {/* Primary Action Button */}
+      {!streaming && (
+        <button
+          onClick={startCamera}
+          style={{
+            width: "100%",
+            padding: "13px 16px",
+            borderRadius: 14,
+            background: activeColor || "#E03050",
+            border: "none",
+            color: "#fff",
+            fontSize: 13,
+            fontWeight: 600,
+            fontFamily: "'DM Sans', sans-serif",
+            letterSpacing: "0.03em",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            boxShadow: `0 4px 20px ${activeColor || "#E03050"}55`,
+            transition: "all 0.3s ease",
+          }}
+        >
+          <Video size={15} />
+          {permState === "denied" ? "Retry Camera" : "Start Live Try-On"}
+        </button>
+      )}
 
       <p style={{ fontSize: 10, color: "#94a3b8", textAlign: "center", fontFamily: "'DM Sans', sans-serif" }}>
-        Opens a standalone page where your browser can grant camera permission
+        {streaming ? "Camera active — lip overlay applied" : "Real-time virtual try-on"}
       </p>
     </div>
   );
