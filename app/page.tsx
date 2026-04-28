@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import LipOverlay from "./component/FaceLandmarker";
 import {
   FlaskConical,
   ImageIcon,
@@ -147,14 +148,14 @@ function MixingTube({ pigmentDrops }: { pigmentDrops: Pigment[] }) {
       </p>
       <div
         style={{
-          width: 28,
-          height: 140,
-          borderRadius: 14,
-          border: "1.5px solid #e2e8f0",
+          width: 32,
+          height: 220, // Extended height
+          borderRadius: 16,
+          border: "2px solid #e2e8f0",
           background: "#f8fafc",
           overflow: "hidden",
           position: "relative",
-          boxShadow: "inset 0 2px 8px rgba(0,0,0,0.06)",
+          boxShadow: "inset 0 4px 12px rgba(0,0,0,0.08)",
         }}
       >
         {/* Fill area */}
@@ -165,7 +166,7 @@ function MixingTube({ pigmentDrops }: { pigmentDrops: Pigment[] }) {
             left: 0,
             right: 0,
             height: `${fillPct * 100}%`,
-            transition: "height 0.4s cubic-bezier(0.34,1.56,0.64,1)",
+            transition: "height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)",
             display: "flex",
             flexDirection: "column-reverse",
             overflow: "hidden",
@@ -200,12 +201,11 @@ function MixingTube({ pigmentDrops }: { pigmentDrops: Pigment[] }) {
         ))}
       </div>
 
-      {/* Drop count badge */}
       <span
         style={{ fontFamily: "'DM Sans', sans-serif" }}
-        className="text-[10px] text-slate-400"
+        className="text-[10px] text-slate-400 font-semibold"
       >
-        {total}/{maxDrops} drops
+        {total}/{maxDrops}
       </span>
     </div>
   );
@@ -328,8 +328,28 @@ function CameraPanel({ activeColor }: { activeColor: string | null }) {
           }}
         />
 
-        {/* Lip overlay on live feed */}
-        {streaming && <LipMask color={activeColor} />}
+        {/* Alignment Guide - Visual correlation aid */}
+        {streaming && (
+          <div style={{
+            position: "absolute",
+            inset: 0,
+            pointerEvents: "none",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
+          }}>
+            <div style={{
+              width: "60%",
+              height: "75%",
+              border: "1.5px dashed rgba(255,255,255,0.4)",
+              borderRadius: "50% 50% 45% 45%",
+              marginBottom: "10%"
+            }} />
+          </div>
+        )}
+
+        {/* Real-time AR Lip Overlay */}
+        {streaming && <LipOverlay activeColor={activeColor || "#E03050"} videoRef={videoRef} />}
 
         {/* Idle / Error state */}
         {!streaming && (
@@ -374,7 +394,7 @@ function CameraPanel({ activeColor }: { activeColor: string | null }) {
               </div>
             ) : (
               <p style={{ fontSize: 11, color: "#94a3b8", textAlign: "center" }}>
-                {activeColor ? "Initializing live try-on..." : "Pick a shade to begin preview"}
+                {activeColor ? "Align your face with the guide" : "Pick a shade to begin preview"}
               </p>
             )}
           </div>
