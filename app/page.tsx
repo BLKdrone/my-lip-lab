@@ -38,15 +38,37 @@ interface OriginalColor {
 }
 // ─── Palette ───────────────────────────────────────────────────────────────
 const ORIGINALS = [
-  { id: "sunset-rose", name: "Sunset Rose", hex: "#E8637A", glow: "#f08090" },
-  { id: "coral-bliss", name: "Coral Bliss", hex: "#F4845F", glow: "#f9a07a" },
-  { id: "berry-pop", name: "Berry Pop", hex: "#9B4B7E", glow: "#c06099" },
+    { 
+    id: "sunset-rose", 
+    name: "Sunset Rose", 
+    hex: "#E8637A", 
+    glow: "#f08090",
+    recipe: { red: 5, pink: 3, white: 1 }
+  },
+  { 
+    id: "coral-bliss", 
+    name: "Coral Bliss", 
+    hex: "#F4845F", 
+    glow: "#f9a07a",
+    recipe: { orange: 5, yellow: 3, white: 1 }
+  },
+  { 
+    id: "berry-pop", 
+    name: "Berry Pop", 
+    hex: "#9B4B7E", 
+    glow: "#c06099",
+    recipe: { purple: 5, pink: 3, glitter: 1 }
+  },
 ];
 
 const PIGMENTS = [
   { id: "red", label: "Red", hex: "#E03050", rgb: [224, 48, 80] },
   { id: "yellow", label: "Yellow", hex: "#F5C518", rgb: [245, 197, 24] },
   { id: "pink", label: "Pink", hex: "#F472B6", rgb: [244, 114, 182] },
+  { id: "white", label: "White", hex: "#FFFFFF", rgb: [255, 255, 255] },
+  { id: "orange", label: "Orange", hex: "#FFA500", rgb: [255, 165, 0] },
+  { id: "purple", label: "Purple", hex: "#800080", rgb: [128, 0, 128] },
+  { id: "glitter", label: "Glitter", hex: "#E2E8F0", rgb: [226, 232, 240], isGlitter: true },
 ];
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -107,7 +129,7 @@ function LipMask({ color }: { color: string | null }) {
 // ─── Mixing Tube ─────────────────────────────────────────────────────────────
 function MixingTube({ pigmentDrops }: { pigmentDrops: Pigment[] }) {
   const total = pigmentDrops.reduce((s, d) => s + d.count, 0);
-  const maxDrops = 12;
+  const maxDrops = 9;
   const fillPct = Math.min(total / maxDrops, 1);
 
   // Build layers from bottom (first added pigment = bottom)
@@ -162,7 +184,7 @@ function MixingTube({ pigmentDrops }: { pigmentDrops: Pigment[] }) {
         </div>
 
         {/* Tick marks */}
-        {[0.25, 0.5, 0.75].map((t) => (
+        {[3/9, 6/9].map((t) => (
           <div
             key={t}
             style={{
@@ -415,41 +437,72 @@ function CameraPanel({ activeColor }: { activeColor: string | null }) {
 // ─── Main Component ──────────────────────────────────────────────────────────
 export default function LipLabStudio() {
   const [tab, setTab] = useState("lab");
-const [selectedOriginal, setSelectedOriginal] = useState<ColorObject | OriginalColor | null>(null);
-const [pigmentDrops, setPigmentDrops] = useState<Pigment[]>( // Added <Pigment[]>
-  PIGMENTS.map((p) => ({ ...p, count: 0 }))
-);
-  const totalDrops = pigmentDrops.reduce((s, d) => s + d.count, 0);
-  const MAX_DROPS = 12;
+  const [selectedOriginal, setSelectedOriginal] = useState<any>(null);
+  
+  // Single source of truth for the 3 dispenser slots
+  const [slots, setSlots] = useState([
+    { id: "red", count: 0 },
+    { id: "yellow", count: 0 },
+    { id: "pink", count: 0 }
+  ]);
+
+  const totalDrops = slots.reduce((s, slot) => s + slot.count, 0);
+  const MAX_DROPS = 9;
+
+  // Derive the active pigment drops for mixing logic
+  const pigmentDrops: Pigment[] = slots.map((slot) => {
+    const p = PIGMENTS.find(pig => pig.id === slot.id)!;
+    return { ...p, count: slot.count };
+  });
 
   const mixedColor = totalDrops > 0 ? avgColor(pigmentDrops) : null;
-
-  // Active color: if original is selected and no drops, use original. If drops, use mix.
   const activeColor = mixedColor || (selectedOriginal ? selectedOriginal.hex : null);
 
-  const handleOriginal = (orig: Pigment) => {
+  const handleOriginal = (orig: any) => {
     setSelectedOriginal(orig);
-    setPigmentDrops(PIGMENTS.map((p) => ({ ...p, count: 0 })));
+    // Convert recipe into exactly 3 slot objects
+    const recipeEntries = Object.entries(orig.recipe).filter(([_, count]) => (count as number) > 0);
+    
+    const newSlots = [
+      { id: "white", count: 0 },
+      { id: "white", count: 0 },
+      { id: "white", count: 0 }
+    ];
+
+    recipeEntries.forEach(([id, count], i) => {
+      if (i < 3) {
+        newSlots[i] = { id, count: count as number };
+      }
+    });
+
+    setSlots(newSlots);
   };
 
-  const adjustDrop = (id: string | number, delta:number) => {
+  const adjustDrop = (slotIdx: number, delta: number) => {
     setSelectedOriginal(null);
-    setPigmentDrops((prev) =>
-      prev.map((d) => {
-        if (d.id !== id) return d;
-        const next = d.count + delta;
-        if (next < 0) return d;
-        if (next > MAX_DROPS) return d;
-        if (totalDrops + delta > MAX_DROPS) return d;
-        return { ...d, count: next };
-      })
-    );
+    const next = slots[slotIdx].count + delta;
+    if (next < 0 || totalDrops + delta > MAX_DROPS) return;
+    
+    const newSlots = [...slots];
+    newSlots[slotIdx] = { ...newSlots[slotIdx], count: next };
+    setSlots(newSlots);
+  };
+
+  const changeSlotColor = (slotIdx: number, newId: string) => {
+    if (slots[slotIdx].id === newId) return;
+    
+    const newSlots = [...slots];
+    // When changing pigment, reset its count to 0
+    newSlots[slotIdx] = { id: newId, count: 0 };
+    setSlots(newSlots);
   };
 
   const resetLab = () => {
-    setPigmentDrops(PIGMENTS.map((p) => ({ ...p, count: 0 })));
+    setSlots(slots.map(s => ({ ...s, count: 0 })));
     setSelectedOriginal(null);
   };
+
+  // ... rest of the component ...
 
   // ── Gallery & Settings screens ──────────────────────────────────────────
   const GalleryScreen = () => (
@@ -711,121 +764,105 @@ const [pigmentDrops, setPigmentDrops] = useState<Pigment[]>( // Added <Pigment[]
                     boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
                   }}
                 >
-                  {/* Pigment dispensers */}
-                  <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
-                    {pigmentDrops.map((pigment) => (
-                      <div
-                        key={pigment.id}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 10,
-                          padding: "8px 12px",
-                          borderRadius: 12,
-                          background: pigment.count > 0 ? `${pigment.hex}0d` : "#fafafa",
-                          border: `1px solid ${pigment.count > 0 ? pigment.hex + "33" : "#f1f5f9"}`,
-                          transition: "all 0.3s ease",
-                        }}
-                      >
-                        {/* Color swatch */}
-                        <div
-                          style={{
-                            width: 22,
-                            height: 22,
-                            borderRadius: "50%",
-                            background: pigment.hex,
-                            flexShrink: 0,
-                            boxShadow: `0 2px 8px ${pigment.hex}55`,
-                          }}
-                        />
+                  {/* Pigment dispensers - 3 Customizable Slots */}
+                  <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
+                    {slots.map((slot, slotIdx) => {
+                      const pigment = PIGMENTS.find(p => p.id === slot.id)!;
+                      const count = slot.count;
 
-                        {/* Label + dots */}
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{ fontSize: 12, fontWeight: 500, color: "#334155" }}>
-                            {pigment.label}
-                          </p>
-                          <div style={{ display: "flex", gap: 3, marginTop: 4, flexWrap: "wrap" }}>
-                            {Array.from({ length: pigment.count }).map((_, i) => (
-                              <div
-                                key={i}
+                      return (
+                        <div
+                          key={slotIdx}
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 8,
+                            padding: "10px",
+                            borderRadius: 16,
+                            background: count > 0 ? `${pigment.hex}0d` : "#fafafa",
+                            border: `1px solid ${count > 0 ? pigment.hex + "33" : "#f1f5f9"}`,
+                            transition: "all 0.3s ease",
+                          }}
+                        >
+                          {/* Color Selector Row */}
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, overflow: "auto", paddingBottom: 2 }}>
+                            {PIGMENTS.map((p) => (
+                              <button
+                                key={p.id}
+                                onClick={() => changeSlotColor(slotIdx, p.id)}
                                 style={{
-                                  width: 7,
-                                  height: 7,
+                                  width: 18,
+                                  height: 18,
                                   borderRadius: "50%",
-                                  background: pigment.hex,
-                                  opacity: 0.75,
-                                  animation: "dropFall 0.25s ease",
+                                  background: p.hex,
+                                  border: slot.id === p.id ? "2.5px solid #1e293b" : "1px solid #e2e8f0",
+                                  cursor: "pointer",
+                                  flexShrink: 0,
+                                  transition: "transform 0.2s ease",
                                 }}
+                                title={p.label}
+                                onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.2)"}
+                                onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
                               />
                             ))}
-                            {pigment.count === 0 && (
-                              <span style={{ fontSize: 10, color: "#cbd5e1" }}>
-                                no drops
+                          </div>
+
+                          {/* Control Row */}
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <div style={{ width: 12, height: 12, borderRadius: "50%", background: pigment.hex }} />
+                            <span style={{ flex: 1, fontSize: 11, fontWeight: 600, color: "#334155", textTransform: "uppercase", letterSpacing: "0.02em" }}>
+                              {pigment.label}
+                            </span>
+
+                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              <button
+                                className="drop-btn"
+                                onClick={() => adjustDrop(slotIdx, -1)}
+                                disabled={count === 0}
+                                style={{
+                                  width: 26,
+                                  height: 26,
+                                  borderRadius: "50%",
+                                  background: "#fff",
+                                  border: "1px solid #e2e8f0",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  cursor: count > 0 ? "pointer" : "not-allowed",
+                                  opacity: count > 0 ? 1 : 0.4,
+                                }}
+                              >
+                                <Minus size={12} color="#64748b" />
+                              </button>
+
+                              <span style={{ fontSize: 13, fontWeight: 700, color: count > 0 ? pigment.hex : "#cbd5e1", minWidth: 16, textAlign: "center" }}>
+                                {count}
                               </span>
-                            )}
+
+                              <button
+                                className="drop-btn"
+                                onClick={() => adjustDrop(slotIdx, 1)}
+                                disabled={totalDrops >= MAX_DROPS}
+                                style={{
+                                  width: 26,
+                                  height: 26,
+                                  borderRadius: "50%",
+                                  background: totalDrops < MAX_DROPS ? pigment.hex : "#f8fafc",
+                                  border: "1px solid #e2e8f0",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  cursor: totalDrops < MAX_DROPS ? "pointer" : "not-allowed",
+                                  boxShadow: totalDrops < MAX_DROPS ? `0 2px 8px ${pigment.hex}44` : "none",
+                                }}
+                              >
+                                <Plus size={12} color={totalDrops < MAX_DROPS ? "#fff" : "#94a3b8"} />
+                              </button>
+                            </div>
                           </div>
                         </div>
-
-                        {/* Controls */}
-                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          <button
-                            className="drop-btn"
-                            onClick={() => adjustDrop(pigment.id, -1)}
-                            disabled={pigment.count === 0}
-                            style={{
-                              width: 26,
-                              height: 26,
-                              borderRadius: "50%",
-                              background: pigment.count > 0 ? "#fff" : "#f8fafc",
-                              border: "1px solid #e2e8f0",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              cursor: pigment.count > 0 ? "pointer" : "not-allowed",
-                              opacity: pigment.count > 0 ? 1 : 0.35,
-                              transition: "all 0.15s ease",
-                            }}
-                          >
-                            <Minus size={12} color="#64748b" />
-                          </button>
-
-                          <span
-                            style={{
-                              fontSize: 13,
-                              fontWeight: 600,
-                              color: pigment.count > 0 ? pigment.hex : "#cbd5e1",
-                              minWidth: 16,
-                              textAlign: "center",
-                              transition: "color 0.3s ease",
-                            }}
-                          >
-                            {pigment.count}
-                          </span>
-
-                          <button
-                            className="drop-btn"
-                            onClick={() => adjustDrop(pigment.id, 1)}
-                            disabled={totalDrops >= MAX_DROPS}
-                            style={{
-                              width: 26,
-                              height: 26,
-                              borderRadius: "50%",
-                              background: totalDrops < MAX_DROPS ? pigment.hex : "#f8fafc",
-                              border: `1px solid ${totalDrops < MAX_DROPS ? pigment.hex : "#e2e8f0"}`,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              cursor: totalDrops < MAX_DROPS ? "pointer" : "not-allowed",
-                              opacity: totalDrops < MAX_DROPS ? 1 : 0.35,
-                              transition: "all 0.15s ease",
-                              boxShadow: totalDrops < MAX_DROPS ? `0 2px 8px ${pigment.hex}44` : "none",
-                            }}
-                          >
-                            <Plus size={12} color={totalDrops < MAX_DROPS ? "#fff" : "#94a3b8"} />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   {/* Mixing Tube */}
