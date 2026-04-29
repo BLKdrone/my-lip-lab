@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import Image from "next/image";
 import {
   FlaskConical,
   ImageIcon,
@@ -101,9 +102,9 @@ function LipMask({ color }: { color: string | null }) {
       style={{
         position: "absolute",
         left: "50%",
-        top: "50%",
+        top: "75%",
         transform: "translate(-50%, -50%)",
-        width: "72%",
+        width: "24%",
         maxWidth: 200,
         mixBlendMode: "multiply",
         opacity: color ? 0.85 : 0,
@@ -607,21 +608,31 @@ export default function LipLabStudio() {
             zIndex: 10,
           }}
         >
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">
-              Pigment Studio
-            </p>
-            <p
-              style={{
-                fontFamily: "'Playfair Display', serif",
-                fontSize: 20,
-                color: "#1e293b",
-                lineHeight: 1.2,
-                marginTop: 2,
-              }}
-            >
-              Lip<em>Lab</em>
-            </p>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <Image 
+              src="/logo.png" 
+              alt="LipLab Logo" 
+              width={38} 
+              height={38} 
+              style={{ borderRadius: "8px" }}
+              priority 
+            />
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">
+                Pigment Studio
+              </p>
+              <p
+                style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: 20,
+                  color: "#1e293b",
+                  lineHeight: 1.2,
+                  marginTop: 2,
+                }}
+              >
+                Lip<em>Lab</em>
+              </p>
+            </div>
           </div>
 
           {activeColor && (
