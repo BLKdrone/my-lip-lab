@@ -39,7 +39,7 @@ interface OriginalColor {
 }
 // ─── Palette ───────────────────────────────────────────────────────────────
 const ORIGINALS = [
-    { 
+  { 
     id: "sunset-rose", 
     name: "Sunset Rose", 
     hex: "#E8637A", 
@@ -60,6 +60,48 @@ const ORIGINALS = [
     glow: "#c06099",
     recipe: { purple: 5, pink: 3, glitter: 1 }
   },
+  { 
+    id: "dusty-pink", 
+    name: "Dusty Pink", 
+    hex: "#D3827B", 
+    glow: "#fec898",
+    recipe: {yellow:3, red: 2, pink: 4 }
+  },
+  { 
+    id: "nude-satin", 
+    name: "Nude Satin", 
+    hex: "#d2b48c", 
+    glow: "#e3d5ca",
+    recipe: { white: 5, orange: 2, pink: 2 }
+  },
+  { 
+    id: "cherry-glaze", 
+    name: "Cherry Glaze", 
+    hex: "#be123c", 
+    glow: "#fb7185",
+    recipe: { red: 7, orange: 1, yellow: 1 }
+  },
+  { 
+    id: "peach-sorbet", 
+    name: "Peach Sorbet", 
+    hex: "#ffb07c", 
+    glow: "#ffcf9d",
+    recipe: { white: 5, yellow: 3, orange: 1 }
+  },
+  { 
+    id: "crimson-velvet", 
+    name: "Crimson Velvet", 
+    hex: "#991b1b", 
+    glow: "#dc2626",
+    recipe: { red: 8, purple: 1 }
+  },
+  { 
+    id: "electric-mauve", 
+    name: "Electric Mauve", 
+    hex: "#a855f7", 
+    glow: "#c084fc",
+    recipe: { purple: 5, pink: 3, white: 1 }
+  }
 ];
 
 const PIGMENTS = [
@@ -580,6 +622,8 @@ export default function LipLabStudio() {
           0% { transform: translateY(-8px); opacity: 0; }
           100% { transform: translateY(0); opacity: 1; }
         }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
 
       <div
@@ -666,63 +710,54 @@ export default function LipLabStudio() {
         </div>
 
         {/* ── Content ── */}
-        <div style={{ flex: 1, overflow: "auto", padding: "16px 16px 80px" }}>
+        <div style={{ flex: 1, overflow: "auto", padding: "16px 16px 80px" }} className="no-scrollbar">
           {tab === "lab" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
               {/* Shop Originals */}
               <section>
-                <p className="text-[9px] uppercase tracking-[0.18em] text-slate-400 font-medium mb-3">
-                  Shop Originals
-                </p>
-                <div style={{ display: "flex", gap: 8 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                  <p className="text-[9px] uppercase tracking-[0.18em] text-slate-400 font-medium">
+                    Shop Originals
+                  </p>
+                  {selectedOriginal && (
+                    <span style={{ fontSize: 10, fontWeight: 700, color: selectedOriginal.hex }}>
+                      {selectedOriginal.name}
+                    </span>
+                  )}
+                </div>
+                <div 
+                  className="no-scrollbar"
+                  style={{ 
+                    display: "flex", 
+                    alignItems: "center", 
+                    gap: 12, 
+                    overflowX: "auto", 
+                    padding: "4px 2px 10px",
+                  }}
+                >
                   {ORIGINALS.map((orig) => {
                     const active = selectedOriginal?.id === orig.id;
                     return (
                       <button
                         key={orig.id}
-                        className="orig-btn"
                         onClick={() => handleOriginal(orig)}
                         style={{
-                          flex: 1,
-                          padding: "10px 6px",
-                          borderRadius: 14,
-                          border: active
-                            ? `2px solid ${orig.hex}`
-                            : "1.5px solid #e2e8f0",
-                          background: active ? `${orig.hex}12` : "#fff",
+                          width: 38,
+                          height: 38,
+                          borderRadius: "50%",
+                          background: orig.hex,
+                          border: active ? "2.5px solid #1e293b" : "1.5px solid #fff",
                           cursor: "pointer",
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          gap: 6,
-                          transition: "all 0.2s ease",
-                          boxShadow: active
-                            ? `0 4px 16px ${orig.glow}44`
-                            : "0 1px 3px rgba(0,0,0,0.04)",
+                          flexShrink: 0,
+                          transition: "all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                          boxShadow: active 
+                            ? `0 6px 14px ${orig.hex}66` 
+                            : `0 2px 5px rgba(0,0,0,0.08)`,
+                          transform: active ? "scale(1.15)" : "scale(1)",
                         }}
-                      >
-                        <div
-                          style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: "50%",
-                            background: orig.hex,
-                            boxShadow: `0 3px 12px ${orig.glow}66`,
-                          }}
-                        />
-                        <span
-                          style={{
-                            fontSize: 10,
-                            fontWeight: 500,
-                            color: active ? orig.hex : "#64748b",
-                            lineHeight: 1.3,
-                            textAlign: "center",
-                          }}
-                        >
-                          {orig.name}
-                        </span>
-                      </button>
+                        title={orig.name}
+                      />
                     );
                   })}
                 </div>
@@ -796,7 +831,7 @@ export default function LipLabStudio() {
                           }}
                         >
                           {/* Color Selector Row */}
-                          <div style={{ display: "flex", alignItems: "center", gap: 8, overflow: "auto", paddingBottom: 2 }}>
+                          <div className="no-scrollbar" style={{ display: "flex", alignItems: "center", gap: 8, overflow: "auto", paddingBottom: 2 }}>
                             {PIGMENTS.map((p) => (
                               <button
                                 key={p.id}
