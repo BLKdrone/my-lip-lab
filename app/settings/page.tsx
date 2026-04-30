@@ -96,6 +96,7 @@ export default function SettingsPage() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  margin: 10,
                 }}
               >
                 <MessageSquareText size={18} color="#fff" />
