@@ -2,63 +2,8 @@
 
 import Link from "next/link";
 import { ArrowLeft, Beaker } from "lucide-react";
-
-const ORIGINALS = [
-  { 
-    id: "sunset-rose", 
-    name: "Sunset Rose", 
-    hex: "#E8637A", 
-    recipe: { red: 5, pink: 3, white: 1 }
-  },
-  { 
-    id: "coral-bliss", 
-    name: "Coral Bliss", 
-    hex: "#F4845F", 
-    recipe: { orange: 5, yellow: 3, white: 1 }
-  },
-  { 
-    id: "berry-pop", 
-    name: "Berry Pop", 
-    hex: "#9B4B7E", 
-    recipe: { purple: 5, pink: 3, glitter: 1 }
-  },
-  { 
-    id: "dusty-pink", 
-    name: "Dusty Pink", 
-    hex: "#D3827B", 
-    recipe: { yellow: 3, red: 2, pink: 4 }
-  },
-  { 
-    id: "nude-satin", 
-    name: "Nude Satin", 
-    hex: "#d2b48c", 
-    recipe: { white: 5, orange: 2, pink: 2 }
-  },
-  { 
-    id: "cherry-glaze", 
-    name: "Cherry Glaze", 
-    hex: "#be123c", 
-    recipe: { red: 7, orange: 1, yellow: 1 }
-  },
-  { 
-    id: "peach-sorbet", 
-    name: "Peach Sorbet", 
-    hex: "#ffb07c", 
-    recipe: { white: 5, yellow: 3, orange: 1 }
-  },
-  { 
-    id: "crimson-velvet", 
-    name: "Crimson Velvet", 
-    hex: "#991b1b", 
-    recipe: { red: 8, purple: 1 }
-  },
-  { 
-    id: "electric-mauve", 
-    name: "Electric Mauve", 
-    hex: "#a855f7", 
-    recipe: { purple: 5, pink: 3, white: 1 }
-  }
-];
+import { ORIGINALS } from "../constants";
+import BottomNav from "../components/BottomNav";
 
 export default function RecipesPage() {
   return (
@@ -167,6 +112,8 @@ export default function RecipesPage() {
           Open Lab
         </Link>
       </div>
+
+      <BottomNav />
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap');
