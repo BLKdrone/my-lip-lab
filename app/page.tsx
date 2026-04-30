@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   FlaskConical,
   ImageIcon,
@@ -14,6 +15,7 @@ import {
   Droplets,
   Sparkles,
   RotateCcw,
+  BookOpen,
 } from "lucide-react";
 interface ColorObject {
    id: string;
@@ -677,6 +679,12 @@ export default function LipLabStudio() {
                 Lip<em>Lab</em>
               </p>
             </div>
+            <Link href="/recipes" style={{ 
+              marginLeft: 8, padding: 8, borderRadius: 10, background: "#f1f5f9", color: "#64748b",
+              display: "flex", alignItems: "center", justifyContent: "center"
+            }} title="View Recipes">
+              <BookOpen size={16} />
+            </Link>
           </div>
 
           {activeColor && (
