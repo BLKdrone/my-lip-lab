@@ -16,20 +16,7 @@ export default function BottomNav() {
 
   return (
     <nav
-      style={{
-        position: "fixed",
-        bottom: 0,
-        left: "50%",
-        transform: "translateX(-50%)",
-        width: "100%",
-        maxWidth: 430,
-        borderTop: "1px solid #f1f5f9",
-       background : "#DE4B52",
-        backdropFilter: "blur(16px)",
-        display: "flex",
-        padding: "10px 0 14px",
-        zIndex: 20,
-      }}
+      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md md:max-w-4xl lg:max-w-6xl border-t border-[#f1f5f9] bg-[#DE4B52] backdrop-blur-md flex py-[10px] px-0 pb-[14px] z-20"
     >
       {navItems.map(({ id, label, Icon, href }) => {
         const active = pathname === href;

@@ -10,15 +10,7 @@ export default function SettingsPage() {
 
   return (
     <div
-      style={{
-        minHeight: "100vh",
-        background: "#f8fafc",
-        display: "flex",
-        flexDirection: "column",
-        maxWidth: 430,
-        margin: "0 auto",
-        fontFamily: "'DM Sans', sans-serif",
-      }}
+      className="main-container min-h-screen bg-[#f8fafc] flex flex-col w-full max-w-md md:max-w-2xl lg:max-w-3xl mx-auto relative font-['DM_Sans',sans-serif]"
     >
       {/* ── Header ── */}
       <div

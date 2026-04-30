@@ -459,17 +459,7 @@ export default function LipLabStudio() {
       `}</style>
 
       <div
-        className="main-container"
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          width: "100%",
-          maxWidth: 480,
-          margin: "0 auto",
-          position: "relative",
-          background: "#fff",
-        }}
+        className="main-container min-h-screen flex flex-col w-full max-w-md md:max-w-4xl lg:max-w-6xl mx-auto relative bg-white"
       >
         <div
           className="glass-header"
@@ -511,85 +501,90 @@ export default function LipLabStudio() {
         </div>
 
         <div style={{ flex: 1, overflow: "auto", padding: "24px 24px 100px" }} className="no-scrollbar">
-          <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-            <section>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: "#1a1a1a", textTransform: "uppercase", letterSpacing: "0.1em" }}>Originals</p>
-              </div>
-              <div className="no-scrollbar" style={{ display: "flex", alignItems: "center", gap: 14, overflowX: "auto", padding: "4px 0" }}>
-                {ORIGINALS.map((orig) => {
-                  const active = selectedOriginal?.id === orig.id;
-                  return (
-                    <button 
-                      key={orig.id} 
-                      onClick={() => handleOriginal(orig)} 
-                      className="orig-btn"
-                      style={{ 
-                        width: 44, height: 44, borderRadius: "50%", background: orig.hex, 
-                        border: active ? "2px solid #1a1a1a" : "2px solid #fff", 
-                        cursor: "pointer", flexShrink: 0,
-                        boxShadow: active ? "0 0 0 2px rgba(0,0,0,0.05)" : "0 4px 12px rgba(0,0,0,0.06)",
-                        transform: active ? "scale(1.1)" : "scale(1)"
-                      }} 
-                    />
-                  );
-                })}
-              </div>
-            </section>
+          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+            {/* Left Column: Preview (Sticky on LG) */}
+            <div className="lg:w-1/2 lg:sticky lg:top-24 lg:self-start">
+              <section>
+                <p style={{ fontSize: 11, fontWeight: 700, color: "#1a1a1a", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16 }}>Preview</p>
+                <div style={{ borderRadius: 32, overflow: "hidden", background: "#fdfdfd", border: "1px solid #f1f1f1", boxShadow: "0 20px 40px -20px rgba(0,0,0,0.08)" }}>
+                  <CameraPanel activeColor={activeColor} />
+                </div>
+              </section>
+            </div>
 
-            <section>
-              <p style={{ fontSize: 11, fontWeight: 700, color: "#1a1a1a", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16 }}>Preview</p>
-              <div style={{ borderRadius: 32, overflow: "hidden", background: "#fdfdfd", border: "1px solid #f1f1f1", boxShadow: "0 20px 40px -20px rgba(0,0,0,0.08)" }}>
-                <CameraPanel activeColor={activeColor} />
-              </div>
-            </section>
-
-            <section>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: "#1a1a1a", textTransform: "uppercase", letterSpacing: "0.1em" }}>Mixing</p>
-                <button onClick={resetLab} style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", borderRadius: 999, border: "1px solid #f0f0f0", background: "#fff", cursor: "pointer", fontSize: 10, fontWeight: 600, color: "#999" }}>
-                  <RotateCcw size={11} strokeWidth={2.5} /> Clear
-                </button>
-              </div>
-              
-              <div className="soft-card" style={{ padding: "24px 20px", display: "flex", gap: 16, alignItems: "flex-end" }}>
-                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
-                  {slots.map((slot, slotIdx) => {
-                    const pigment = PIGMENTS.find(p => p.id === slot.id)!;
-                    const count = slot.count;
+            {/* Right Column: Controls */}
+            <div className="lg:w-1/2 flex flex-col gap-8">
+              <section>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: "#1a1a1a", textTransform: "uppercase", letterSpacing: "0.1em" }}>Originals</p>
+                </div>
+                <div className="no-scrollbar" style={{ display: "flex", alignItems: "center", gap: 14, overflowX: "auto", padding: "4px 0" }}>
+                  {ORIGINALS.map((orig) => {
+                    const active = selectedOriginal?.id === orig.id;
                     return (
-                      <div key={slotIdx} style={{ display: "flex", flexDirection: "column", gap: 10, padding: "12px", borderRadius: 20, background: count > 0 ? `${pigment.hex}08` : "#fafafa", border: `1px solid ${count > 0 ? pigment.hex + "20" : "#f1f1f1"}`, transition: "all 0.4s ease" }}>
-                        <div className="no-scrollbar" style={{ display: "flex", alignItems: "center", gap: 10, overflow: "auto" }}>
-                          {PIGMENTS.map((p) => (
-                            <button key={p.id} onClick={() => changeSlotColor(slotIdx, p.id)} style={{ width: 18, height: 18, borderRadius: "50%", background: p.hex, border: slot.id === p.id ? "1.5px solid #1a1a1a" : "1.5px solid #fff", cursor: "pointer", flexShrink: 0, boxShadow: "0 2px 4px rgba(0,0,0,0.05)" }} />
-                          ))}
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                          <span style={{ flex: 1, fontSize: 11, fontWeight: 700, color: "#1a1a1a", textTransform: "lowercase", letterSpacing: "0.02em" }}>{pigment.label}</span>
-                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <button className="drop-btn" onClick={() => adjustDrop(slotIdx, -1)} disabled={count === 0} style={{ width: 26, height: 26, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: count > 0 ? "pointer" : "not-allowed", opacity: count > 0 ? 1 : 0.3 }}><Minus size={12} strokeWidth={2.5} color="#1a1a1a" /></button>
-                            <span style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", minWidth: 16, textAlign: "center" }}>{count}</span>
-                            <button className="drop-btn" onClick={() => adjustDrop(slotIdx, 1)} disabled={totalDrops >= MAX_DROPS} style={{ width: 26, height: 26, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: totalDrops < MAX_DROPS ? "pointer" : "not-allowed" }}><Plus size={12} strokeWidth={2.5} color="#1a1a1a" /></button>
-                          </div>
-                        </div>
-                      </div>
+                      <button 
+                        key={orig.id} 
+                        onClick={() => handleOriginal(orig)} 
+                        className="orig-btn"
+                        style={{ 
+                          width: 44, height: 44, borderRadius: "50%", background: orig.hex, 
+                          border: active ? "2px solid #1a1a1a" : "2px solid #fff", 
+                          cursor: "pointer", flexShrink: 0,
+                          boxShadow: active ? "0 0 0 2px rgba(0,0,0,0.05)" : "0 4px 12px rgba(0,0,0,0.06)",
+                          transform: active ? "scale(1.1)" : "scale(1)"
+                        }} 
+                      />
                     );
                   })}
                 </div>
-                <MixingTube pigmentDrops={pigmentDrops} />
-              </div>
+              </section>
 
-              {mixedColor && (
-                <div style={{ marginTop: 20, padding: "20px", borderRadius: 28, background: "#fefcfd",border: "2px solid rgba(255, 255, 255, 0.4)", display: "flex", alignItems: "center", gap: 16, boxShadow: "0 20px 40px -10px rgba(0,0,0,0.2)" }}>
-                  <div style={{ width: 44, height: 44, borderRadius: "16px", background: mixedColor, border: "2px solid rgba(255,255,255,0.1)", flexShrink: 0 }} />
-                  <div>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: "#DE4B52" }}>Curated Blend</p>
-                    <p style={{ fontSize: 10, color: "#000000", fontWeight: 500, marginTop: 2 }}>{pigmentDrops.filter((d) => (d.count || 0) > 0).map((d) => `${d.count}× ${d.label}`).join(" · ")}</p>
-                  </div>
-                  {/* <div style={{ marginLeft: "auto" }}><Sparkles size={16} color="#fff" opacity={0.8} /></div> */}
+              <section>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: "#1a1a1a", textTransform: "uppercase", letterSpacing: "0.1em" }}>Mixing</p>
+                  <button onClick={resetLab} style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", borderRadius: 999, border: "1px solid #f0f0f0", background: "#fff", cursor: "pointer", fontSize: 10, fontWeight: 600, color: "#999" }}>
+                    <RotateCcw size={11} strokeWidth={2.5} /> Clear
+                  </button>
                 </div>
-              )}
-            </section>
+                
+                <div className="soft-card" style={{ padding: "24px 20px", display: "flex", gap: 16, alignItems: "flex-end" }}>
+                  <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
+                    {slots.map((slot, slotIdx) => {
+                      const pigment = PIGMENTS.find(p => p.id === slot.id)!;
+                      const count = slot.count;
+                      return (
+                        <div key={slotIdx} style={{ display: "flex", flexDirection: "column", gap: 10, padding: "12px", borderRadius: 20, background: count > 0 ? `${pigment.hex}08` : "#fafafa", border: `1px solid ${count > 0 ? pigment.hex + "20" : "#f1f1f1"}`, transition: "all 0.4s ease" }}>
+                          <div className="no-scrollbar" style={{ display: "flex", alignItems: "center", gap: 10, overflow: "auto" }}>
+                            {PIGMENTS.map((p) => (
+                              <button key={p.id} onClick={() => changeSlotColor(slotIdx, p.id)} style={{ width: 18, height: 18, borderRadius: "50%", background: p.hex, border: slot.id === p.id ? "1.5px solid #1a1a1a" : "1.5px solid #fff", cursor: "pointer", flexShrink: 0, boxShadow: "0 2px 4px rgba(0,0,0,0.05)" }} />
+                            ))}
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                            <span style={{ flex: 1, fontSize: 11, fontWeight: 700, color: "#1a1a1a", textTransform: "lowercase", letterSpacing: "0.02em" }}>{pigment.label}</span>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                              <button className="drop-btn" onClick={() => adjustDrop(slotIdx, -1)} disabled={count === 0} style={{ width: 26, height: 26, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: count > 0 ? "pointer" : "not-allowed", opacity: count > 0 ? 1 : 0.3 }}><Minus size={12} strokeWidth={2.5} color="#1a1a1a" /></button>
+                              <span style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", minWidth: 16, textAlign: "center" }}>{count}</span>
+                              <button className="drop-btn" onClick={() => adjustDrop(slotIdx, 1)} disabled={totalDrops >= MAX_DROPS} style={{ width: 26, height: 26, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: totalDrops < MAX_DROPS ? "pointer" : "not-allowed" }}><Plus size={12} strokeWidth={2.5} color="#1a1a1a" /></button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <MixingTube pigmentDrops={pigmentDrops} />
+                </div>
+
+                {mixedColor && (
+                  <div style={{ marginTop: 20, padding: "20px", borderRadius: 28, background: "#fefcfd",border: "2px solid rgba(255, 255, 255, 0.4)", display: "flex", alignItems: "center", gap: 16, boxShadow: "0 20px 40px -10px rgba(0,0,0,0.2)" }}>
+                    <div style={{ width: 44, height: 44, borderRadius: "16px", background: mixedColor, border: "2px solid rgba(255,255,255,0.1)", flexShrink: 0 }} />
+                    <div>
+                      <p style={{ fontSize: 13, fontWeight: 700, color: "#DE4B52" }}>Curated Blend</p>
+                      <p style={{ fontSize: 10, color: "#000000", fontWeight: 500, marginTop: 2 }}>{pigmentDrops.filter((d) => (d.count || 0) > 0).map((d) => `${d.count}× ${d.label}`).join(" · ")}</p>
+                    </div>
+                  </div>
+                )}
+              </section>
+            </div>
           </div>
         </div>
 

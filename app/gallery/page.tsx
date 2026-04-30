@@ -45,17 +45,7 @@ export default function GalleryPage() {
 
   return (
     <div
-      style={{
-        minHeight: "100vh",
-        background: "#f8fafc",
-        display: "flex",
-        flexDirection: "column",
-        maxWidth: 480,
-        margin: "0 auto",
-        fontFamily: "'DM Sans', sans-serif",
-        position: "relative",
-      }}
-      className="main-container"
+      className="main-container min-h-screen bg-[#f8fafc] flex flex-col w-full max-w-md md:max-w-4xl lg:max-w-6xl mx-auto relative font-['DM_Sans',sans-serif]"
     >
       {/* ── Header ── */}
       <div
@@ -94,7 +84,7 @@ export default function GalleryPage() {
             </div>
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
             {items.map((item) => (
               <div
                 key={item.id}
@@ -185,13 +175,6 @@ export default function GalleryPage() {
       <BottomNav />
 
       <style>{`
-        @media (min-width: 480px) {
-          .main-container {
-            border-left: 1px solid #f1f5f9;
-            border-right: 1px solid #f1f5f9;
-            box-shadow: 0 0 50px rgba(0,0,0,0.02);
-          }
-        }
         .no-scrollbar::-webkit-scrollbar { display: none; }
       `}</style>
     </div>

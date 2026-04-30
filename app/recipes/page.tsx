@@ -7,14 +7,9 @@ import BottomNav from "../components/BottomNav";
 
 export default function RecipesPage() {
   return (
-    <div style={{ 
-      minHeight: "100vh", 
-      background: "#f8fafc", 
-      fontFamily: "'DM Sans', sans-serif",
-      padding: "24px 20px 100px",
-      maxWidth: 430,
-      margin: "0 auto"
-    }}>
+    <div 
+      className="main-container min-h-screen bg-[#f8fafc] flex flex-col w-full max-w-md md:max-w-4xl lg:max-w-6xl mx-auto relative font-['DM_Sans',sans-serif] p-[24px_20px_100px]"
+    >
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 32 }}>
         <Link href="/" style={{ 
