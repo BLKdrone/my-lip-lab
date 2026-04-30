@@ -7,7 +7,6 @@ import {
   Minus,
   Video,
   VideoOff,
-  Sparkles,
   RotateCcw,
   Heart,
   Check,
@@ -581,13 +580,13 @@ export default function LipLabStudio() {
               </div>
 
               {mixedColor && (
-                <div style={{ marginTop: 20, padding: "20px", borderRadius: 28, background: "#1a1a1a", display: "flex", alignItems: "center", gap: 16, boxShadow: "0 20px 40px -10px rgba(0,0,0,0.2)" }}>
+                <div style={{ marginTop: 20, padding: "20px", borderRadius: 28, background: "#fefcfd",border: "2px solid rgba(255, 255, 255, 0.4)", display: "flex", alignItems: "center", gap: 16, boxShadow: "0 20px 40px -10px rgba(0,0,0,0.2)" }}>
                   <div style={{ width: 44, height: 44, borderRadius: "16px", background: mixedColor, border: "2px solid rgba(255,255,255,0.1)", flexShrink: 0 }} />
                   <div>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Curated Blend</p>
-                    <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 500, marginTop: 2 }}>{pigmentDrops.filter((d) => (d.count || 0) > 0).map((d) => `${d.count}× ${d.label}`).join(" · ")}</p>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: "#DE4B52" }}>Curated Blend</p>
+                    <p style={{ fontSize: 10, color: "#000000", fontWeight: 500, marginTop: 2 }}>{pigmentDrops.filter((d) => (d.count || 0) > 0).map((d) => `${d.count}× ${d.label}`).join(" · ")}</p>
                   </div>
-                  <div style={{ marginLeft: "auto" }}><Sparkles size={16} color="#fff" opacity={0.8} /></div>
+                  {/* <div style={{ marginLeft: "auto" }}><Sparkles size={16} color="#fff" opacity={0.8} /></div> */}
                 </div>
               )}
             </section>
