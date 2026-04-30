@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import {
   Plus,
   Minus,
@@ -10,9 +9,12 @@ import {
   VideoOff,
   Sparkles,
   RotateCcw,
+  Heart,
+  Check,
 } from "lucide-react";
-import { ORIGINALS, PIGMENTS, type Pigment } from "./constants";
+import { ORIGINALS, PIGMENTS, type Pigment, type OriginalColor } from "./constants";
 import BottomNav from "./components/BottomNav";
+import { supabase } from "@/lib/supabaseClient";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 function avgColor(drops: Pigment[]) {
@@ -187,13 +189,14 @@ function CameraPanel({ activeColor }: { activeColor: string | null }) {
           }
         };
       }
-    } catch (err: any) {
-      if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+    } catch (err: unknown) {
+      const error = err as { name?: string; message?: string };
+      if (error.name === "NotAllowedError" || error.name === "PermissionDeniedError") {
         setPermState("denied");
         setErrorMsg("Camera blocked. Please allow access.");
       } else {
         setPermState("error");
-        setErrorMsg(err.message || "Could not start camera.");
+        setErrorMsg(error.message || "Could not start camera.");
       }
     }
   }, []);
@@ -207,7 +210,10 @@ function CameraPanel({ activeColor }: { activeColor: string | null }) {
   }, []);
 
   useEffect(() => {
-    startCamera();
+    const initCamera = async () => {
+      await startCamera();
+    };
+    initCamera();
     return () => stopCamera();
   }, [startCamera, stopCamera]);
 
@@ -329,12 +335,13 @@ function CameraPanel({ activeColor }: { activeColor: string | null }) {
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 export default function LipLabStudio() {
-  const [selectedOriginal, setSelectedOriginal] = useState<any>(null);
+  const [selectedOriginal, setSelectedOriginal] = useState<OriginalColor | null>(null);
   const [slots, setSlots] = useState([
     { id: "red", count: 0 },
     { id: "yellow", count: 0 },
     { id: "pink", count: 0 }
   ]);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
 
   const totalDrops = slots.reduce((s, slot) => s + slot.count, 0);
   const MAX_DROPS = 9;
@@ -347,7 +354,7 @@ export default function LipLabStudio() {
   const mixedColor = totalDrops > 0 ? avgColor(pigmentDrops) : null;
   const activeColor = mixedColor || (selectedOriginal ? selectedOriginal.hex : null);
 
-  const handleOriginal = (orig: any) => {
+  const handleOriginal = (orig: OriginalColor) => {
     setSelectedOriginal(orig);
     const recipeEntries = Object.entries(orig.recipe).filter(([_, count]) => (count as number) > 0);
     const newSlots = [
@@ -359,6 +366,36 @@ export default function LipLabStudio() {
       if (i < 3) newSlots[i] = { id, count: count as number };
     });
     setSlots(newSlots);
+  };
+
+  const saveToGallery = async () => {
+    if (!activeColor || saveStatus !== "idle") return;
+    
+    setSaveStatus("saving");
+    
+    const recipe: Record<string, number> = {};
+    slots.forEach(s => {
+      if (s.count > 0) recipe[s.id] = s.count;
+    });
+
+    const newLook = {
+      name: selectedOriginal ? selectedOriginal.name : "Custom Blend",
+      hex: activeColor,
+      timestamp: new Date().toISOString(),
+      recipe: selectedOriginal ? selectedOriginal.recipe : recipe
+    };
+
+    const { error } = await supabase
+      .from('gallery')
+      .insert([newLook]);
+
+    if (!error) {
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 2000);
+    } else {
+      console.error("Error saving to gallery:", error.message);
+      setSaveStatus("idle");
+    }
   };
 
   const adjustDrop = (slotIdx: number, delta: number) => {
@@ -441,6 +478,16 @@ export default function LipLabStudio() {
             <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", borderRadius: 999, background: "#fff", border: "1px solid #f1f5f9", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
               <div style={{ width: 12, height: 12, borderRadius: "50%", background: activeColor, boxShadow: `0 0 6px ${activeColor}88`, transition: "background 0.5s ease" }} />
               <span className="text-xs text-slate-500 font-medium">{selectedOriginal ? selectedOriginal.name : "Custom Mix"}</span>
+              <button 
+                onClick={saveToGallery}
+                disabled={saveStatus !== "idle"}
+                style={{ 
+                  marginLeft: 4, padding: 4, borderRadius: 6, border: "none", background: "none", cursor: "pointer",
+                  color: saveStatus === "saved" ? "#22c55e" : "#94a3b8", display: "flex", alignItems: "center"
+                }}
+              >
+                {saveStatus === "saved" ? <Check size={14} /> : <Heart size={14} fill={saveStatus === "saving" ? "#f472b6" : "none"} />}
+              </button>
             </div>
           )}
         </div>

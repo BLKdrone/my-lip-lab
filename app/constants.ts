@@ -15,6 +15,15 @@ export interface OriginalColor {
   recipe: Record<string, number>;
 }
 
+export interface SavedLook {
+  id: string;
+  name: string;
+  hex: string;
+  timestamp: number;
+  recipe?: Record<string, number>;
+  isOriginal?: boolean;
+}
+
 export const ORIGINALS: OriginalColor[] = [
   { 
     id: "sunset-rose", 

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { X, Send, Smile, Frown, Meh, Star } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
 
 interface FeedbackModalProps {
   isOpen: boolean;
@@ -15,17 +16,24 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate API call
-    console.log("Feedback submitted:", { rating, comment });
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setRating(null);
-      setComment("");
-      onClose();
-    }, 2000);
+    
+    const { error } = await supabase
+      .from('feedback')
+      .insert([{ rating, comment }]);
+
+    if (!error) {
+      setSubmitted(true);
+      setTimeout(() => {
+        setSubmitted(false);
+        setRating(null);
+        setComment("");
+        onClose();
+      }, 2000);
+    } else {
+      console.error("Error submitting feedback:", error.message);
+    }
   };
 
   return (
@@ -130,7 +138,7 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
                       cursor: "pointer",
                       padding: "12px 0",
                       borderRadius: 16,
-                      background: rating === item.value ? "#f8fafc" : "transparent",
+                      backgroundColor: rating === item.value ? "#f8fafc" : "transparent",
                       transition: "all 0.2s ease",
                     }}
                   >
@@ -209,6 +217,7 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
           to { opacity: 1; transform: scale(1) translateY(0); }
         }
       `}</style>
+
     </div>
   );
 }

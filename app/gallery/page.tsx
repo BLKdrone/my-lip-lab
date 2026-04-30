@@ -1,9 +1,48 @@
 "use client";
-
-import { ImageIcon } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Trash2, Play, Heart } from "lucide-react";
 import BottomNav from "../components/BottomNav";
+import { SavedLook } from "../constants";
 
 export default function GalleryPage() {
+  const router = useRouter();
+  const [items, setItems] = useState<SavedLook[]>([]);
+
+  useEffect(() => {
+    const fetchGallery = async () => {
+      const { data, error } = await supabase
+        .from('gallery')
+        .select('*')
+        .order('timestamp', { ascending: false });
+      
+      if (!error && data) {
+        setItems(data as SavedLook[]);
+      } else {
+        console.error("Error fetching gallery:", error?.message);
+      }
+    };
+    fetchGallery();
+  }, []);
+
+  const deleteItem = async (id: string) => {
+    const { error } = await supabase
+      .from('gallery')
+      .delete()
+      .eq('id', id);
+
+    if (!error) {
+      setItems(items.filter((item) => item.id !== id));
+    } else {
+      console.error("Error deleting look:", error.message);
+    }
+  };
+
+  const tryOn = (id: string) => {
+    router.push(`/?load=${id}`);
+  };
+
   return (
     <div
       style={{
@@ -11,10 +50,12 @@ export default function GalleryPage() {
         background: "#f8fafc",
         display: "flex",
         flexDirection: "column",
-        maxWidth: 430,
+        maxWidth: 480,
         margin: "0 auto",
         fontFamily: "'DM Sans', sans-serif",
+        position: "relative",
       }}
+      className="main-container"
     >
       {/* ── Header ── */}
       <div
@@ -29,43 +70,130 @@ export default function GalleryPage() {
         }}
       >
         <h1 style={{ fontSize: 20, fontWeight: 700, color: "#1e293b" }}>Gallery</h1>
-        <p style={{ fontSize: 12, color: "#94a3b8" }}>Your saved looks</p>
+        <p style={{ fontSize: 12, color: "#94a3b8" }}>{items.length} saved looks</p>
       </div>
 
       {/* ── Content ── */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: "16px 16px 80px" }}>
-        <div
-          style={{
-            width: 56,
-            height: 56,
-            borderRadius: 16,
-            background: "#fff",
-            border: "1px solid #f1f5f9",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-          }}
-        >
-          <ImageIcon size={22} color="#94a3b8" />
-        </div>
-        <div className="text-center">
-          <p
-            style={{ fontFamily: "'DM Sans', sans-serif" }}
-            className="text-sm font-semibold text-slate-700"
-          >
-            Your Gallery is Empty
-          </p>
-          <p
-            style={{ fontFamily: "'DM Sans', sans-serif" }}
-            className="text-xs text-slate-400 mt-1"
-          >
-            Create and save your custom blends to see them here.
-          </p>
-        </div>
+      <div style={{ flex: 1, padding: "20px 20px 100px" }} className="no-scrollbar">
+        {items.length === 0 ? (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "60vh", gap: 16 }}>
+            <div
+              style={{
+                width: 64, height: 64, borderRadius: 20, background: "#fff",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.03)", border: "1px solid #f1f5f9"
+              }}
+            >
+              <Heart size={28} color="#cbd5e1" />
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <p style={{ fontSize: 15, fontWeight: 600, color: "#475569" }}>No looks saved yet</p>
+              <p style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>
+                Custom blends you save in the Lab will appear here.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            {items.map((item) => (
+              <div
+                key={item.id}
+                style={{
+                  background: "#fff",
+                  borderRadius: 20,
+                  overflow: "hidden",
+                  border: "1px solid #f1f5f9",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.02)",
+                  display: "flex",
+                  flexDirection: "column"
+                }}
+              >
+                {/* Color Swatch */}
+                <div 
+                  style={{ 
+                    width: "100%", 
+                    aspectRatio: "1", 
+                    background: item.hex,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    position: "relative"
+                  }}
+                >
+                  <div style={{ 
+                    width: "60%", height: "60%", borderRadius: "50%", 
+                    background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)",
+                    border: "1px solid rgba(255,255,255,0.2)"
+                  }} />
+                </div>
+
+                {/* Info */}
+                <div style={{ padding: "12px", flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: "#1e293b" }}>{item.name}</p>
+                    <p style={{ fontSize: 10, color: "#94a3b8", marginTop: 2 }}>
+                      {new Date(item.timestamp).toLocaleDateString()}
+                    </p>
+                  </div>
+
+                  <div style={{ display: "flex", gap: 6, marginTop: "auto" }}>
+                    <button
+                      onClick={() => tryOn(item.id)}
+                      style={{
+                        flex: 1,
+                        padding: "8px",
+                        borderRadius: 10,
+                        background: "#1e293b",
+                        color: "#fff",
+                        border: "none",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 6,
+                        fontSize: 11,
+                        fontWeight: 600,
+                        cursor: "pointer"
+                      }}
+                    >
+                      <Play size={12} fill="currentColor" />
+                      Try On
+                    </button>
+                    <button
+                      onClick={() => deleteItem(item.id)}
+                      style={{
+                        padding: "8px",
+                        borderRadius: 10,
+                        background: "#fef2f2",
+                        color: "#ef4444",
+                        border: "none",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer"
+                      }}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <BottomNav />
+
+      <style>{`
+        @media (min-width: 480px) {
+          .main-container {
+            border-left: 1px solid #f1f5f9;
+            border-right: 1px solid #f1f5f9;
+            box-shadow: 0 0 50px rgba(0,0,0,0.02);
+          }
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+      `}</style>
     </div>
   );
 }
