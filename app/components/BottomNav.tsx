@@ -24,7 +24,7 @@ export default function BottomNav() {
         width: "100%",
         maxWidth: 430,
         borderTop: "1px solid #f1f5f9",
-        background: "rgba(248,250,252,0.96)",
+       background : "#DE4B52",
         backdropFilter: "blur(16px)",
         display: "flex",
         padding: "10px 0 14px",
@@ -33,7 +33,7 @@ export default function BottomNav() {
     >
       {navItems.map(({ id, label, Icon, href }) => {
         const active = pathname === href;
-        const accent = "#e03050";
+        const accent = "#ffffff";
         return (
           <Link
             key={id}
@@ -60,13 +60,13 @@ export default function BottomNav() {
                 transition: "background 0.2s ease",
               }}
             >
-              <Icon size={18} color={active ? accent : "#94a3b8"} strokeWidth={active ? 2 : 1.5} />
+              <Icon size={18} color={active ? accent : "#ffffff"} strokeWidth={active ? 2 : 1.5} />
             </div>
             <span
               style={{
                 fontSize: 10,
                 fontWeight: active ? 600 : 400,
-                color: active ? accent : "#94a3b8",
+                color: active ? accent : "#ffffff",
                 letterSpacing: "0.04em",
                 transition: "color 0.2s ease",
               }}

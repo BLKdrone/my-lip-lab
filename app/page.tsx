@@ -76,21 +76,21 @@ function MixingTube({ pigmentDrops }: { pigmentDrops: Pigment[] }) {
   return (
     <div className="flex flex-col items-center gap-2">
       <p
-        style={{ fontFamily: "'DM Sans', sans-serif", letterSpacing: "0.12em" }}
+        style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: "0.12em" }}
         className="text-[9px] uppercase text-slate-400 font-medium tracking-widest"
       >
-        Mixing Tube
+        Mix
       </p>
       <div
         style={{
-          width: 28,
-          height: 140,
-          borderRadius: 14,
-          border: "1.5px solid #e2e8f0",
-          background: "#f8fafc",
+          width: 24,
+          height: 120,
+          borderRadius: 12,
+          border: "1px solid #f0f0f0",
+          background: "#fafafa",
           overflow: "hidden",
           position: "relative",
-          boxShadow: "inset 0 2px 8px rgba(0,0,0,0.06)",
+          boxShadow: "inset 0 1px 4px rgba(0,0,0,0.02)",
         }}
       >
         <div
@@ -100,7 +100,7 @@ function MixingTube({ pigmentDrops }: { pigmentDrops: Pigment[] }) {
             left: 0,
             right: 0,
             height: `${fillPct * 100}%`,
-            transition: "height 0.4s cubic-bezier(0.34,1.56,0.64,1)",
+            transition: "height 0.4s cubic-bezier(0.23, 1, 0.32, 1)",
             display: "flex",
             flexDirection: "column-reverse",
             overflow: "hidden",
@@ -117,27 +117,7 @@ function MixingTube({ pigmentDrops }: { pigmentDrops: Pigment[] }) {
             />
           ))}
         </div>
-        {[3/9, 6/9].map((t) => (
-          <div
-            key={t}
-            style={{
-              position: "absolute",
-              bottom: `${t * 100}%`,
-              left: 4,
-              right: 4,
-              height: 1,
-              background: "rgba(148,163,184,0.4)",
-              pointerEvents: "none",
-            }}
-          />
-        ))}
       </div>
-      <span
-        style={{ fontFamily: "'DM Sans', sans-serif" }}
-        className="text-[10px] text-slate-400"
-      >
-        {total}/{maxDrops} drops
-      </span>
     </div>
   );
 }
@@ -155,13 +135,13 @@ function CameraPanel({ activeColor }: { activeColor: string | null }) {
     
     if (typeof window !== "undefined" && !window.isSecureContext && window.location.hostname !== "localhost") {
       setPermState("error");
-      setErrorMsg("Camera requires HTTPS (Secure Connection).");
+      setErrorMsg("Camera requires HTTPS.");
       return;
     }
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       setPermState("error");
-      setErrorMsg("Camera API not supported.");
+      setErrorMsg("Not supported.");
       return;
     }
 
@@ -173,7 +153,7 @@ function CameraPanel({ activeColor }: { activeColor: string | null }) {
       let stream;
       try {
         stream = await navigator.mediaDevices.getUserMedia(constraints);
-      } catch (innerErr) {
+      } catch (innerErr: unknown) {
         stream = await navigator.mediaDevices.getUserMedia({ video: true });
       }
       
@@ -184,8 +164,8 @@ function CameraPanel({ activeColor }: { activeColor: string | null }) {
             await videoRef.current?.play();
             setStreaming(true);
             setPermState("idle");
-          } catch (playErr) {
-            setErrorMsg("Click to start video.");
+          } catch (playErr: unknown) {
+            setErrorMsg("Click to start.");
           }
         };
       }
@@ -193,10 +173,10 @@ function CameraPanel({ activeColor }: { activeColor: string | null }) {
       const error = err as { name?: string; message?: string };
       if (error.name === "NotAllowedError" || error.name === "PermissionDeniedError") {
         setPermState("denied");
-        setErrorMsg("Camera blocked. Please allow access.");
+        setErrorMsg("Blocked.");
       } else {
         setPermState("error");
-        setErrorMsg(error.message || "Could not start camera.");
+        setErrorMsg(error.message || "Error.");
       }
     }
   }, []);
@@ -225,13 +205,11 @@ function CameraPanel({ activeColor }: { activeColor: string | null }) {
         style={{
           position: "relative",
           width: "100%",
-          aspectRatio: "4/3",
-          borderRadius: 20,
+          aspectRatio: "4/5",
+          borderRadius: 24,
           overflow: "hidden",
-          background: streaming ? "#000" : "#f1f5f9",
-          border: isFailed ? "1.5px dashed #fca5a5" : "1.5px solid #e2e8f0",
-          boxShadow: "0 4px 24px rgba(0,0,0,0.07)",
-          transition: "border-color 0.3s ease",
+          background: streaming ? "#000" : "#fcfcfc",
+          transition: "all 0.4s ease",
         }}
       >
         <video
@@ -257,31 +235,21 @@ function CameraPanel({ activeColor }: { activeColor: string | null }) {
             {activeColor && !isFailed && (
               <div
                 style={{
-                  width: 110, height: 44, borderRadius: 999,
-                  background: activeColor, opacity: 0.85,
-                  boxShadow: `0 6px 24px ${activeColor}66`,
+                  width: 80, height: 32, borderRadius: 999,
+                  background: activeColor, opacity: 0.8,
                   transition: "background 0.5s ease",
                   marginBottom: 4,
                 }}
               />
             )}
             {isFailed ? (
-              <div
-                style={{
-                  background: "#fef2f2", border: "1px solid #fecaca",
-                  borderRadius: 12, padding: "10px 14px",
-                  display: "flex", alignItems: "flex-start", gap: 8, maxWidth: 260,
-                }}
-              >
-                <span style={{ fontSize: 16 }}>⚠️</span>
-                <div>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: "#dc2626", marginBottom: 2 }}>Camera Issue</p>
-                  <p style={{ fontSize: 10, color: "#ef4444", lineHeight: 1.5 }}>{errorMsg}</p>
-                </div>
+              <div style={{ textAlign: "center", padding: 20 }}>
+                <p style={{ fontSize: 10, fontWeight: 700, color: "#1a1a1a", textTransform: "uppercase", letterSpacing: "0.1em" }}>Camera Error</p>
+                <p style={{ fontSize: 10, color: "#999", marginTop: 4 }}>{errorMsg}</p>
               </div>
             ) : (
-              <p style={{ fontSize: 11, color: "#94a3b8", textAlign: "center" }}>
-                {activeColor ? "Initializing live try-on..." : "Pick a shade to begin preview"}
+              <p style={{ fontSize: 10, color: "#d1d1d1", fontWeight: 500, letterSpacing: "0.05em" }}>
+                {activeColor ? "Calibrating view..." : "Select a shade"}
               </p>
             )}
           </div>
@@ -290,15 +258,15 @@ function CameraPanel({ activeColor }: { activeColor: string | null }) {
           <button
             onClick={stopCamera}
             style={{
-              position: "absolute", bottom: 10, right: 10,
-              width: 34, height: 34, borderRadius: "50%",
-              background: "rgba(255,255,255,0.92)",
-              border: "1px solid #e2e8f0",
+              position: "absolute", bottom: 16, right: 16,
+              width: 36, height: 36, borderRadius: "50%",
+              background: "rgba(255,255,255,0.8)",
+              border: "none",
               display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "pointer", backdropFilter: "blur(8px)",
+              cursor: "pointer", backdropFilter: "blur(10px)",
             }}
           >
-            <VideoOff size={14} color="#64748b" />
+            <VideoOff size={16} color="#1a1a1a" />
           </button>
         )}
       </div>
@@ -307,26 +275,25 @@ function CameraPanel({ activeColor }: { activeColor: string | null }) {
           onClick={startCamera}
           style={{
             width: "100%",
-            padding: "13px 16px",
-            borderRadius: 14,
-            background: activeColor || "#E03050",
+            padding: "16px",
+            borderRadius: 18,
+            background: "#1a1a1a",
             border: "none",
             color: "#fff",
-            fontSize: 13,
-            fontWeight: 600,
-            fontFamily: "'DM Sans', sans-serif",
-            letterSpacing: "0.03em",
+            fontSize: 12,
+            fontWeight: 700,
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            letterSpacing: "0.05em",
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             gap: 8,
-            boxShadow: `0 4px 20px ${activeColor || "#E03050"}55`,
             transition: "all 0.3s ease",
           }}
         >
-          <Video size={15} />
-          {permState === "denied" ? "Retry Camera" : "Start Live Try-On"}
+          <Video size={16} strokeWidth={2.5} />
+          Try-on Live
         </button>
       )}
     </div>
@@ -422,20 +389,73 @@ export default function LipLabStudio() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,500;1,400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #f8fafc; overflow-x: hidden; }
-        .drop-btn:active { transform: scale(0.92); }
-        .orig-btn:active { transform: scale(0.97); }
+        
+        body { 
+          background: #fdfcfd; 
+          overflow-x: hidden; 
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          color: #1a1a1a;
+        }
+
+        .main-container {
+          background: #fff;
+          min-height: 100vh;
+          box-shadow: 0 0 80px rgba(0,0,0,0.02);
+        }
+
+        .glass-header {
+          background: rgba(255, 255, 255, 0.7) !important;
+          backdrop-filter: blur(25px) saturate(200%);
+          -webkit-backdrop-filter: blur(25px) saturate(200%);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.04) !important;
+        }
+
+        .soft-card {
+          background: #ffffff;
+          border: 1px solid #f1f1f1;
+          box-shadow: 0 10px 30px -10px rgba(0,0,0,0.04);
+          border-radius: 28px;
+          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .drop-btn {
+          border: 1px solid #eeeeee !important;
+          background: #ffffff !important;
+          transition: all 0.3s ease;
+        }
+
+        .drop-btn:hover:not(:disabled) {
+          background: #fafafa !important;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .drop-btn:active {
+          transform: translateY(0px);
+        }
+
+        .orig-btn {
+          transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .orig-btn:hover {
+          transform: scale(1.1);
+        }
+
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        @media (min-width: 480px) {
-          .main-container {
-            border-left: 1px solid #f1f5f9;
-            border-right: 1px solid #f1f5f9;
-            box-shadow: 0 0 50px rgba(0,0,0,0.02);
-          }
+        @keyframes subtle-float {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-4px); }
+          100% { transform: translateY(0px); }
+        }
+
+        .floating-soft {
+          animation: subtle-float 4s ease-in-out infinite;
         }
       `}</style>
 
@@ -443,103 +463,114 @@ export default function LipLabStudio() {
         className="main-container"
         style={{
           minHeight: "100vh",
-          background: "#f8fafc",
           display: "flex",
           flexDirection: "column",
           width: "100%",
           maxWidth: 480,
           margin: "0 auto",
-          fontFamily: "'DM Sans', sans-serif",
           position: "relative",
+          background: "#fff",
         }}
       >
         <div
+          className="glass-header"
           style={{
-            padding: "18px 20px 10px",
+            padding: "20px 24px 12px",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            borderBottom: "1px solid #f1f5f9",
-            background: "rgba(248,250,252,0.95)",
-            backdropFilter: "blur(12px)",
             position: "sticky",
             top: 0,
-            zIndex: 10,
+            zIndex: 50,
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <Image src="/logo.png" alt="LipLab Logo" width={38} height={38} style={{ borderRadius: "8px" }} priority />
+            <div className="floating-soft" style={{ position: "relative" }}>
+              <Image src="/logo.png" alt="LipLab Logo" width={40} height={40} style={{ borderRadius: "14px", filter: "grayscale(0.1)" }} priority />
+            </div>
             <div>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">Pigment Studio</p>
-              <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: "#1e293b", lineHeight: 1.2, marginTop: 2 }}>Lip<em>Lab</em></p>
+              <p style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "#a1a1a1", marginBottom: -2 }}>Lab Edition</p>
+              <p style={{ fontSize: 20, fontWeight: 800, color: "#1a1a1a", letterSpacing: "-0.02em" }}>LipLab</p>
             </div>
           </div>
           {activeColor && (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", borderRadius: 999, background: "#fff", border: "1px solid #f1f5f9", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
-              <div style={{ width: 12, height: 12, borderRadius: "50%", background: activeColor, boxShadow: `0 0 6px ${activeColor}88`, transition: "background 0.5s ease" }} />
-              <span className="text-xs text-slate-500 font-medium">{selectedOriginal ? selectedOriginal.name : "Custom Mix"}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 16px", borderRadius: 999, background: "#f8f8f8", border: "1px solid #efefef" }}>
+              <div style={{ width: 10, height: 10, borderRadius: "50%", background: activeColor }} />
+              <span style={{ fontSize: 11, fontWeight: 600, color: "#444" }}>{selectedOriginal ? selectedOriginal.name : "Custom"}</span>
               <button 
                 onClick={saveToGallery}
                 disabled={saveStatus !== "idle"}
                 style={{ 
-                  marginLeft: 4, padding: 4, borderRadius: 6, border: "none", background: "none", cursor: "pointer",
-                  color: saveStatus === "saved" ? "#22c55e" : "#94a3b8", display: "flex", alignItems: "center"
+                  marginLeft: 4, padding: 4, borderRadius: 8, border: "none", background: "none", cursor: "pointer",
+                  color: saveStatus === "saved" ? "#10b981" : "#d1d1d1", display: "flex", alignItems: "center", transition: "all 0.3s"
                 }}
               >
-                {saveStatus === "saved" ? <Check size={14} /> : <Heart size={14} fill={saveStatus === "saving" ? "#f472b6" : "none"} />}
+                {saveStatus === "saved" ? <Check size={16} strokeWidth={2.5} /> : <Heart size={16} strokeWidth={2.5} fill={saveStatus === "saving" ? "#ff4d4d" : "none"} />}
               </button>
             </div>
           )}
         </div>
 
-        <div style={{ flex: 1, overflow: "auto", padding: "16px 16px 80px" }} className="no-scrollbar">
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ flex: 1, overflow: "auto", padding: "24px 24px 100px" }} className="no-scrollbar">
+          <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
             <section>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                <p className="text-[9px] uppercase tracking-[0.18em] text-slate-400 font-medium">Shop Originals</p>
-                {selectedOriginal && <span style={{ fontSize: 10, fontWeight: 700, color: selectedOriginal.hex }}>{selectedOriginal.name}</span>}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: "#1a1a1a", textTransform: "uppercase", letterSpacing: "0.1em" }}>Originals</p>
               </div>
-              <div className="no-scrollbar" style={{ display: "flex", alignItems: "center", gap: 12, overflowX: "auto", padding: "4px 2px 10px" }}>
+              <div className="no-scrollbar" style={{ display: "flex", alignItems: "center", gap: 14, overflowX: "auto", padding: "4px 0" }}>
                 {ORIGINALS.map((orig) => {
                   const active = selectedOriginal?.id === orig.id;
                   return (
-                    <button key={orig.id} onClick={() => handleOriginal(orig)} style={{ width: 38, height: 38, borderRadius: "50%", background: orig.hex, border: active ? "2.5px solid #1e293b" : "1.5px solid #fff", cursor: "pointer", flexShrink: 0, transition: "all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)", boxShadow: active ? `0 6px 14px ${orig.hex}66` : `0 2px 5px rgba(0,0,0,0.08)`, transform: active ? "scale(1.15)" : "scale(1)" }} title={orig.name} />
+                    <button 
+                      key={orig.id} 
+                      onClick={() => handleOriginal(orig)} 
+                      className="orig-btn"
+                      style={{ 
+                        width: 44, height: 44, borderRadius: "50%", background: orig.hex, 
+                        border: active ? "2px solid #1a1a1a" : "2px solid #fff", 
+                        cursor: "pointer", flexShrink: 0,
+                        boxShadow: active ? "0 0 0 2px rgba(0,0,0,0.05)" : "0 4px 12px rgba(0,0,0,0.06)",
+                        transform: active ? "scale(1.1)" : "scale(1)"
+                      }} 
+                    />
                   );
                 })}
               </div>
             </section>
 
             <section>
-              <p className="text-[9px] uppercase tracking-[0.18em] text-slate-400 font-medium mb-3">Pro Camera Studio</p>
-              <CameraPanel activeColor={activeColor} />
+              <p style={{ fontSize: 11, fontWeight: 700, color: "#1a1a1a", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16 }}>Preview</p>
+              <div style={{ borderRadius: 32, overflow: "hidden", background: "#fdfdfd", border: "1px solid #f1f1f1", boxShadow: "0 20px 40px -20px rgba(0,0,0,0.08)" }}>
+                <CameraPanel activeColor={activeColor} />
+              </div>
             </section>
 
             <section>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                <p className="text-[9px] uppercase tracking-[0.18em] text-slate-400 font-medium">Layered Pigment Lab</p>
-                <button onClick={resetLab} style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 999, border: "1px solid #e2e8f0", background: "#fff", cursor: "pointer", fontSize: 10, color: "#94a3b8", fontFamily: "'DM Sans', sans-serif" }}>
-                  <RotateCcw size={10} /> Reset
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: "#1a1a1a", textTransform: "uppercase", letterSpacing: "0.1em" }}>Mixing</p>
+                <button onClick={resetLab} style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", borderRadius: 999, border: "1px solid #f0f0f0", background: "#fff", cursor: "pointer", fontSize: 10, fontWeight: 600, color: "#999" }}>
+                  <RotateCcw size={11} strokeWidth={2.5} /> Clear
                 </button>
               </div>
-              <div style={{ background: "#fff", borderRadius: 20, border: "1.5px solid #f1f5f9", padding: "16px 12px", display: "flex", gap: 8, alignItems: "flex-end", boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
-                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
+              
+              <div className="soft-card" style={{ padding: "24px 20px", display: "flex", gap: 16, alignItems: "flex-end" }}>
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
                   {slots.map((slot, slotIdx) => {
                     const pigment = PIGMENTS.find(p => p.id === slot.id)!;
                     const count = slot.count;
                     return (
-                      <div key={slotIdx} style={{ display: "flex", flexDirection: "column", gap: 8, padding: "10px", borderRadius: 16, background: count > 0 ? `${pigment.hex}0d` : "#fafafa", border: `1px solid ${count > 0 ? pigment.hex + "33" : "#f1f5f9"}`, transition: "all 0.3s ease" }}>
-                        <div className="no-scrollbar" style={{ display: "flex", alignItems: "center", gap: 8, overflow: "auto", paddingBottom: 2 }}>
+                      <div key={slotIdx} style={{ display: "flex", flexDirection: "column", gap: 10, padding: "12px", borderRadius: 20, background: count > 0 ? `${pigment.hex}08` : "#fafafa", border: `1px solid ${count > 0 ? pigment.hex + "20" : "#f1f1f1"}`, transition: "all 0.4s ease" }}>
+                        <div className="no-scrollbar" style={{ display: "flex", alignItems: "center", gap: 10, overflow: "auto" }}>
                           {PIGMENTS.map((p) => (
-                            <button key={p.id} onClick={() => changeSlotColor(slotIdx, p.id)} style={{ width: 18, height: 18, borderRadius: "50%", background: p.hex, border: slot.id === p.id ? "2.5px solid #1e293b" : "1px solid #e2e8f0", cursor: "pointer", flexShrink: 0, transition: "transform 0.2s ease" }} title={p.label} />
+                            <button key={p.id} onClick={() => changeSlotColor(slotIdx, p.id)} style={{ width: 18, height: 18, borderRadius: "50%", background: p.hex, border: slot.id === p.id ? "1.5px solid #1a1a1a" : "1.5px solid #fff", cursor: "pointer", flexShrink: 0, boxShadow: "0 2px 4px rgba(0,0,0,0.05)" }} />
                           ))}
                         </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <div style={{ width: 12, height: 12, borderRadius: "50%", background: pigment.hex }} />
-                          <span style={{ flex: 1, fontSize: 11, fontWeight: 600, color: "#334155", textTransform: "uppercase", letterSpacing: "0.02em" }}>{pigment.label}</span>
-                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                            <button className="drop-btn" onClick={() => adjustDrop(slotIdx, -1)} disabled={count === 0} style={{ width: 26, height: 26, borderRadius: "50%", background: "#fff", border: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", cursor: count > 0 ? "pointer" : "not-allowed", opacity: count > 0 ? 1 : 0.4 }}><Minus size={12} color="#64748b" /></button>
-                            <span style={{ fontSize: 13, fontWeight: 700, color: count > 0 ? pigment.hex : "#cbd5e1", minWidth: 16, textAlign: "center" }}>{count}</span>
-                            <button className="drop-btn" onClick={() => adjustDrop(slotIdx, 1)} disabled={totalDrops >= MAX_DROPS} style={{ width: 26, height: 26, borderRadius: "50%", background: totalDrops < MAX_DROPS ? pigment.hex : "#f8fafc", border: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", cursor: totalDrops < MAX_DROPS ? "pointer" : "not-allowed", boxShadow: totalDrops < MAX_DROPS ? `0 2px 8px ${pigment.hex}44` : "none" }}><Plus size={12} color={totalDrops < MAX_DROPS ? "#fff" : "#94a3b8"} /></button>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <span style={{ flex: 1, fontSize: 11, fontWeight: 700, color: "#1a1a1a", textTransform: "lowercase", letterSpacing: "0.02em" }}>{pigment.label}</span>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <button className="drop-btn" onClick={() => adjustDrop(slotIdx, -1)} disabled={count === 0} style={{ width: 26, height: 26, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: count > 0 ? "pointer" : "not-allowed", opacity: count > 0 ? 1 : 0.3 }}><Minus size={12} strokeWidth={2.5} color="#1a1a1a" /></button>
+                            <span style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", minWidth: 16, textAlign: "center" }}>{count}</span>
+                            <button className="drop-btn" onClick={() => adjustDrop(slotIdx, 1)} disabled={totalDrops >= MAX_DROPS} style={{ width: 26, height: 26, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: totalDrops < MAX_DROPS ? "pointer" : "not-allowed" }}><Plus size={12} strokeWidth={2.5} color="#1a1a1a" /></button>
                           </div>
                         </div>
                       </div>
@@ -548,14 +579,15 @@ export default function LipLabStudio() {
                 </div>
                 <MixingTube pigmentDrops={pigmentDrops} />
               </div>
+
               {mixedColor && (
-                <div style={{ marginTop: 10, padding: "10px 14px", borderRadius: 12, background: "#fff", border: "1px solid #f1f5f9", display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: mixedColor, boxShadow: `0 3px 12px ${mixedColor}55`, transition: "background 0.4s ease", flexShrink: 0 }} />
+                <div style={{ marginTop: 20, padding: "20px", borderRadius: 28, background: "#1a1a1a", display: "flex", alignItems: "center", gap: 16, boxShadow: "0 20px 40px -10px rgba(0,0,0,0.2)" }}>
+                  <div style={{ width: 44, height: 44, borderRadius: "16px", background: mixedColor, border: "2px solid rgba(255,255,255,0.1)", flexShrink: 0 }} />
                   <div>
-                    <p className="text-xs font-semibold text-slate-700">Custom Blend</p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">{pigmentDrops.filter((d) => (d.count || 0) > 0).map((d) => `${d.count}× ${d.label}`).join(" · ")}</p>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Curated Blend</p>
+                    <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 500, marginTop: 2 }}>{pigmentDrops.filter((d) => (d.count || 0) > 0).map((d) => `${d.count}× ${d.label}`).join(" · ")}</p>
                   </div>
-                  <div style={{ marginLeft: "auto" }}><Sparkles size={14} color="#f472b6" /></div>
+                  <div style={{ marginLeft: "auto" }}><Sparkles size={16} color="#fff" opacity={0.8} /></div>
                 </div>
               )}
             </section>

@@ -93,7 +93,7 @@ export default function RecipesPage() {
         marginTop: 24, 
         padding: 20, 
         borderRadius: 20, 
-        background: "linear-gradient(135deg, #1e293b 0%, #334155 100%)",
+        background: "linear-gradient(135deg, #DE4B52 0%, #f88f9a 100%)",
         color: "#fff",
         display: "flex",
         alignItems: "center",
@@ -101,10 +101,10 @@ export default function RecipesPage() {
       }}>
         <div>
           <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Ready to mix?</p>
-          <p style={{ fontSize: 11, color: "#94a3b8" }}>Try these formulas in the lab</p>
+          <p style={{ fontSize: 11, color: "#ffffff" }}>Try these formulas in the lab</p>
         </div>
         <Link href="/" style={{ 
-          background: "#fff", color: "#1e293b", padding: "10px 16px", borderRadius: 12,
+          background: "#fff", color: "#DE4B52", padding: "10px 16px", borderRadius: 12,
           fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 8,
           textDecoration: "none"
         }}>
