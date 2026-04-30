@@ -1,8 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import BottomNav from "../components/BottomNav";
+import FeedbackModal from "../components/FeedbackModal";
+import { MessageSquareText, ChevronRight } from "lucide-react";
 
 export default function SettingsPage() {
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+
   return (
     <div
       style={{
@@ -34,6 +39,7 @@ export default function SettingsPage() {
       {/* ── Content ── */}
       <div style={{ flex: 1, overflow: "auto", padding: "16px 16px 80px" }}>
         <div className="flex flex-col gap-3">
+          {/* Main Settings */}
           {[
             "Skin Tone Calibration",
             "Blend Mode",
@@ -61,20 +67,58 @@ export default function SettingsPage() {
               >
                 {item}
               </span>
-              <svg width="6" height="10" viewBox="0 0 6 10" fill="none">
-                <path
-                  d="M1 1l4 4-4 4"
-                  stroke="#cbd5e1"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <ChevronRight size={16} color="#cbd5e1" />
             </div>
           ))}
+
+          {/* Feedback Section */}
+          <div style={{ marginTop: 12, borderTop: "1px solid #f1f5f9", paddingTop: 24 }}>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold mb-4 px-2">
+              Support
+            </p>
+            <button
+              onClick={() => setIsFeedbackOpen(true)}
+              style={{
+                width: "100%",
+                padding: "16px",
+                borderRadius: 16,
+                background: "linear-gradient(135deg, #e03050 0%, #be123c 100%)",
+                border: "none",
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                color: "#fff",
+                cursor: "pointer",
+                boxShadow: "0 4px 12px rgba(224, 48, 80, 0.2)",
+                transition: "transform 0.2s ease",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-2px)")}
+              onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
+            >
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 10,
+                  background: "rgba(255,255,255,0.2)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <MessageSquareText size={18} color="#fff" />
+              </div>
+              <div style={{ textAlign: "left" }}>
+                <p style={{ fontSize: 13, fontWeight: 600 }}>Send Feedback</p>
+                <p style={{ fontSize: 10, opacity: 0.8 }}>Tell us what you think</p>
+              </div>
+              <ChevronRight size={16} style={{ marginLeft: "auto", opacity: 0.7 }} />
+            </button>
+          </div>
         </div>
       </div>
 
+      <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
       <BottomNav />
     </div>
   );
