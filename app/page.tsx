@@ -83,7 +83,7 @@ function MixingTube({ pigmentDrops }: { pigmentDrops: Pigment[] }) {
       <div
         style={{
           width: 24,
-          height: 120,
+          height:260,
           borderRadius: 12,
           border: "1px solid #f0f0f0",
           background: "#fafafa",
