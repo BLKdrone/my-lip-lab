@@ -387,22 +387,33 @@ export default function LipLabStudio() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,500;1,400&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #f8fafc; }
+        body { background: #f8fafc; overflow-x: hidden; }
         .drop-btn:active { transform: scale(0.92); }
         .orig-btn:active { transform: scale(0.97); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        @media (min-width: 480px) {
+          .main-container {
+            border-left: 1px solid #f1f5f9;
+            border-right: 1px solid #f1f5f9;
+            box-shadow: 0 0 50px rgba(0,0,0,0.02);
+          }
+        }
       `}</style>
 
       <div
+        className="main-container"
         style={{
           minHeight: "100vh",
           background: "#f8fafc",
           display: "flex",
           flexDirection: "column",
-          maxWidth: 430,
+          width: "100%",
+          maxWidth: 480,
           margin: "0 auto",
           fontFamily: "'DM Sans', sans-serif",
+          position: "relative",
         }}
       >
         <div

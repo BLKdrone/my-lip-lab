@@ -44,15 +44,18 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
     >
       <div
         style={{
-          width: "100%",
-          maxWidth: 380,
+          width: "calc(100% - 32px)",
+          maxWidth: 400,
           background: "#fff",
           borderRadius: 24,
-          padding: "24px",
+          padding: "28px 24px",
           boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
           position: "relative",
-          animation: "modalAppear 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+          animation: "modalAppear 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+          maxHeight: "90vh",
+          overflowY: "auto",
         }}
+        className="no-scrollbar"
       >
         <button
           onClick={onClose}
